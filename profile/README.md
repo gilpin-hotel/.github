@@ -4,7 +4,10 @@
 
 <br/><br/>
 
-<img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-wordmark-pine.png" alt="Gilpin Hotel & Lake House" height="46" />
+<a href="https://thegilpin.co.uk">
+  <img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-wordmark-pine.png#gh-light-mode-only" alt="Gilpin Hotel & Lake House" height="46" />
+  <img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-wordmark-bone.png#gh-dark-mode-only" alt="Gilpin Hotel & Lake House" height="46" />
+</a>
 
 ### *Enterprise Hospitality Operations & Conformed Data Architecture*
 **Windermere, The English Lake District · Relais & Châteaux**
@@ -40,7 +43,7 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
                   2. GILPIN DATA LAKE (GDL) — SNOWFLAKE (GCP LONDON europe-west2)
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────┬────────────────────────────────────────────────────────────────────┐
   │  RAW LAYER (22 Tables)      │ Verbatim landing floor · Replay boundary · Never mutated           │
   ├─────────────────────────────┼────────────────────────────────────────────────────────────────────┤
   │  BRONZE LAYER (29 Tables)   │ Typed, conformed selections per source record                      │
@@ -50,9 +53,10 @@ The Gilpin technology platform provides a conformed, single source of guest trut
   │  GOLD LAYER (94T, 122V)     │ Conformed Dimensional Star (37 Dims, 45 Facts) + Thin gld_* Faces │
   ├─────────────────────────────┼────────────────────────────────────────────────────────────────────┤
   │  CONTROL PLANE              │ META (Standards) · AUDIT (~630 Gates/Build) · GOVERNANCE · ENRICH  │
-  └──────────────────────────────────────────────────────────────────────────────────────────────────┘
+  └─────────────────────────────┴────────────────────────────────────────────────────────────────────┘
   • Rebuilt deterministically from RAW twice daily (113-task graph, 111 active tasks, ~42 min runtime)
   • Lineage Gate (module 112) enforces rules LIN-0 through LIN-7 on every single build
+  • Cortex cross-region routing explicitly DISABLED (zero guest analytics outside London europe-west2)
                                                 │
                                                 ▼
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -75,7 +79,7 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 ### 🏨 [GilpinArrivalTool](https://github.com/gilpin-hotel/GilpinArrivalTool) · `v10.6.0 Production`
 * **Real-Time Front-of-House Orchestration:** Multi-department arrivals board, VIP recognition, room readiness tracking, and Duty Manager shift diary.
 * **Stack:** `React 19` `TypeScript 5.7` `Vite 6` `Tailwind CSS`.
-* **State Sync:** Firebase Realtime Database in **Belgium (`europe-west1`)** provides sub-second cross-device synchronization.
+* **State Sync:** Firebase Realtime Database in **Belgium (`europe-west1`)** provides sub-second cross-device synchronization across 9 hotel departments.
 * **Edge Infrastructure:** Vercel Serverless Functions in **London (`lhr1`)** with HMAC-authenticated API routes.
 * **PMS Integration:** Hart PMS token-on-file verification at check-in, ETA write-back, and Room Confirmation 18 templates.
 * **Reviews:** Native Google Business Profile API integration without third-party scrapers.
@@ -90,7 +94,7 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 
 ### 🍳 [gilpin-kitchen-dashboard](https://github.com/gilpin-hotel/gilpin-kitchen-dashboard) · `Production`
 * **Kitchen Safety & Dining Recognition:** Real-time food safety and culinary pacing dashboard for *Source at Gilpin Hotel* (Michelin-starred dining).
-* **Stack:** `React` `TypeScript` `Vite` `Tailwind CSS`.
+* **Stack:** `React` `TypeScript` `Vite` `Tailwind CSS` deployed on Vercel London (`lhr1`).
 * **Data Flow:** Subscribes to conformed guest dietary notes and UK Top 14 allergen alerts from the Arrivals tool feed and GDL Gold views.
 * **Safety Protocols:** Cross-checked against head chef allergen runbooks; zero local PII storage.
 
@@ -110,10 +114,10 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 
 <div align="center">
 
-| *The Lake House Sanctuary* | *Source at Gilpin Hotel* | *Gilpin Spice* |
+| The Lake House Sanctuary | Source at Gilpin Hotel | Gilpin Spice |
 | :---: | :---: | :---: |
-| <img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/lake-house-exterior.jpg" width="300" alt="Lake House" /> | <img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo.svg" width="160" alt="Source" /> | <img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo.svg" width="160" alt="Spice" /> |
-| **Knipe Tarn & Private Spa Lodges** | **Michelin-Starred Dining** | **Pan-Asian Culinary Journey** |
+| <a href="https://thegilpin.co.uk/lake-house/"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/lake-house-exterior.jpg" width="260" alt="The Lake House Sanctuary" /></a> | <a href="https://thegilpin.co.uk/eat-drink/source/"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo-pine.svg#gh-light-mode-only" width="190" alt="SOURCE at Gilpin Hotel" /><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo.svg#gh-dark-mode-only" width="190" alt="SOURCE at Gilpin Hotel" /></a> | <a href="https://thegilpin.co.uk/eat-drink/spice/"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo-pine.svg#gh-light-mode-only" width="125" alt="Gilpin Spice" /><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo.svg#gh-dark-mode-only" width="125" alt="Gilpin Spice" /></a> |
+| **Private Lake & Spa Lodges**<br/><sub>6 Exclusive Suites on Knipe Tarn<br/>Private Treatment Rooms & Sanctuary Host</sub> | **Michelin-Starred Dining**<br/><sub>Executive Chef Ollie Bridgwater<br/>Hyper-Local Lake District Produce & Technique</sub> | **Pan-Asian Culinary Journey**<br/><sub>Vibrant Open Kitchen<br/>Tapas & Sharing Menus along the Spice Trail</sub> |
 
 </div>
 
@@ -134,9 +138,16 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-g-bronze.png" width="44" alt="Gilpin Crest" />
+<img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-g-pine.png#gh-light-mode-only" width="44" alt="Gilpin Crest" />
+<img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-g-bronze.png#gh-dark-mode-only" width="44" alt="Gilpin Crest" />
 
-<br/>
+<br/><br/>
+
+<a href="https://www.relaischateaux.com/gb/united-kingdom/gilpin-cumbria-windermere">
+  <img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/relais-chateaux-logo.png" width="110" alt="Relais & Châteaux" />
+</a>
+
+<br/><br/>
 
 *Gilpin Hotel & Lake House · Crook Road, Windermere, Cumbria LA23 3NE*  
 *Relais & Châteaux · Principal Architecture by Dimitrios Karakonstantinou*
