@@ -7,11 +7,16 @@
 ### *Enterprise Hospitality Operations & Conformed Data Architecture*
 **Windermere, The English Lake District · Relais & Châteaux**
 
+</div>
+
 <br/>
+
 > [!NOTE]
 > **Working Draft (Pre-Production UAT):** All platform descriptions, architecture specifications, and operational registers are currently a **Working Draft** in active pre-production review. Real-time integrations with **Plato Operations** (live operational feeds, guest handovers, maintenance, guest issues, dietary follows, and morning briefing sync) are actively running in UAT across the estate platform alongside Hart PMS and the Gilpin Data Lake (Snowflake London). Final documentation, full governance reviews, and descriptions will be completed with Claude on Sunday.
 
 <br/>
+
+<div align="center">
 
 [![Snowflake GDL](https://img.shields.io/badge/Snowflake-GCP_London_europe--west2-29B5E8?style=for-the-badge&logo=snowflake)](https://github.com/gilpin-hotel/GDL_Merged)
 [![Arrival Platform](https://img.shields.io/badge/Arrival_Platform-v10.6.0_UAT-2ea44f?style=for-the-badge&logo=react)](https://gilpin-arrival-tool.vercel.app)
