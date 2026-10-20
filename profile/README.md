@@ -1,13 +1,10 @@
 <div align="center">
 
-<img width="100%" alt="Gilpin Hotel & Lake House" src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-banner.png" />
+<a href="#gh-light-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-org-banner-light.png" alt="Gilpin Hotel & Lake House" width="100%" /></a><a href="#gh-dark-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-org-banner-dark.png" alt="Gilpin Hotel & Lake House" width="100%" /></a>
 
 <br/><br/>
 
-<a href="https://thegilpin.co.uk">
-  <img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-wordmark-pine.png#gh-light-mode-only" alt="Gilpin Hotel & Lake House" height="46" />
-  <img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-wordmark-bone.png#gh-dark-mode-only" alt="Gilpin Hotel & Lake House" height="46" />
-</a>
+<a href="https://thegilpin.co.uk#gh-light-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-wordmark-pine.png" alt="Gilpin Hotel & Lake House" height="46" /></a><a href="https://thegilpin.co.uk#gh-dark-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-wordmark-bone.png" alt="Gilpin Hotel & Lake House" height="46" /></a>
 
 ### *Enterprise Hospitality Operations & Conformed Data Architecture*
 **Windermere, The English Lake District · Relais & Châteaux**
@@ -116,7 +113,7 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 
 | The Lake House Sanctuary | Source at Gilpin Hotel | Gilpin Spice |
 | :---: | :---: | :---: |
-| <a href="https://thegilpin.co.uk/lake-house/"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/lake-house-exterior.jpg" width="260" alt="The Lake House Sanctuary" /></a> | <a href="https://thegilpin.co.uk/eat-drink/source/"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo-pine.svg#gh-light-mode-only" width="190" alt="SOURCE at Gilpin Hotel" /><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo.svg#gh-dark-mode-only" width="190" alt="SOURCE at Gilpin Hotel" /></a> | <a href="https://thegilpin.co.uk/eat-drink/spice/"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo-pine.svg#gh-light-mode-only" width="125" alt="Gilpin Spice" /><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo.svg#gh-dark-mode-only" width="125" alt="Gilpin Spice" /></a> |
+| <a href="https://thegilpin.co.uk/lake-house/"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/lake-house-exterior.jpg" width="260" alt="The Lake House Sanctuary" /></a> | <a href="https://thegilpin.co.uk/eat-drink/source/#gh-light-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo-pine.svg" width="190" alt="SOURCE at Gilpin Hotel" /></a><a href="https://thegilpin.co.uk/eat-drink/source/#gh-dark-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo.svg" width="190" alt="SOURCE at Gilpin Hotel" /></a> | <a href="https://thegilpin.co.uk/eat-drink/spice/#gh-light-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo-pine.svg" width="125" alt="Gilpin Spice" /></a><a href="https://thegilpin.co.uk/eat-drink/spice/#gh-dark-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo.svg" width="125" alt="Gilpin Spice" /></a> |
 | **Private Lake & Spa Lodges**<br/><sub>6 Exclusive Suites on Knipe Tarn<br/>Private Treatment Rooms & Sanctuary Host</sub> | **Michelin-Starred Dining**<br/><sub>Executive Chef Ollie Bridgwater<br/>Hyper-Local Lake District Produce & Technique</sub> | **Pan-Asian Culinary Journey**<br/><sub>Vibrant Open Kitchen<br/>Tapas & Sharing Menus along the Spice Trail</sub> |
 
 </div>
@@ -138,8 +135,7 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-g-pine.png#gh-light-mode-only" width="44" alt="Gilpin Crest" />
-<img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-g-bronze.png#gh-dark-mode-only" width="44" alt="Gilpin Crest" />
+<a href="#gh-light-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-g-pine.png" width="44" alt="Gilpin Crest" /></a><a href="#gh-dark-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-g-bronze.png" width="44" alt="Gilpin Crest" /></a>
 
 <br/><br/>
 
