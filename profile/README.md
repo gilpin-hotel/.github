@@ -43,7 +43,7 @@ flowchart TD
         BRONZE["BRONZE Layer (29 Tables)<br/>Typed Selections per Source Record"]
         SILVER["SILVER Layer (33 Tables, 18 Views)<br/>Data Quality · Canonical Identity Engine · Hub Tables"]
         GOLD["GOLD Layer (94 Tables, 122 Views)<br/>Conformed Star Schema (37 Dims, 45 Facts, 12 Bridges)<br/>Thin Consumer Faces (gld_*)"]
-        CTRL[("Control Plane<br/>META (Standards, Contracts, Dictionaries)<br/>AUDIT (~630 Gates/Build, Lineage)<br/>GOVERNANCE, SECURITY & ENRICH")]
+        CTRL["Control Plane<br/>META: Standards, Contracts, Dictionaries<br/>AUDIT: ~630 Gates/Build, Lineage<br/>GOVERNANCE, SECURITY & ENRICH"]
         
         RAW --> BRONZE --> SILVER --> GOLD
         CTRL -. Governs .-> RAW
@@ -68,12 +68,12 @@ flowchart TD
     ANPR --> RAW
     DESK --> CTRL
 
-    GOLD -- "SERVING_NOTIFY Task" --> AT
+    GOLD -->|"SERVING_NOTIFY Task"| AT
     GOLD --> KD
     GOLD --> RH
     GOLD --> MCP
     GOLD --> PLATO_OUT
-    AT -- "Plate Sync" --> ANPR
+    AT -->|"Plate Sync"| ANPR
 ```
 
 ---
