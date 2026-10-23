@@ -26,33 +26,40 @@ The Gilpin technology estate joins **20+ years of guest stay, dining, and spa hi
 
 ```mermaid
 flowchart LR
+  classDef pine fill:#18261F,stroke:#C5A065,stroke-width:1.5px,color:#F5F3EF
+  classDef bronze fill:#2F4A3C,stroke:#C5A065,stroke-width:2px,color:#F5F3EF
+  classDef obsidian fill:#0C110E,stroke:#C5A065,stroke-width:1.5px,color:#E8E4DC
+
   subgraph SRC["1. Sources & Estate Sensors"]
-    HART["Hart PMS API<br/>Stays, Dining & Spa<br/>11:45 & 23:30 London"]
-    ARCH["Historical Archives<br/>ReslynxE (2004–2021)<br/>Hart Historic (2022–Jul 2026)"]
-    PL["Plato Operations<br/>8 Feeds to RAW<br/>(Issues, Handovers, Maint.)"]
-    MKT["Marketing & Web<br/>DotDigital Snapshot &<br/>WP Engine Form Poller"]
-    GATE["ANPR Gate Cameras<br/>Lake House & Main Hotel<br/>via Gate PC (GIL10620)"]
-    DESK["Arrivals Tool Write-Back<br/>Desk Enrichments &<br/>Pre-Arrival Slots"]
+    HART["Hart PMS API<br/>Stays, Dining & Spa<br/>11:45 & 23:30 London"]:::pine
+    ARCH["Historical Archives<br/>ReslynxE (2004–2021)<br/>Hart Historic (2022–Jul 2026)"]:::obsidian
+    PL["Plato Operations<br/>8 Feeds to RAW<br/>(Issues, Handovers, Maint.)"]:::pine
+    MKT["Marketing & Web<br/>DotDigital Snapshot &<br/>WP Engine Form Poller"]:::pine
+    GATE["ANPR Gate Cameras<br/>Lake House & Main Hotel<br/>via Gate PC (GIL10620)"]:::pine
+    SLOTS["gilpin-arrival-slots<br/>Pre-Arrival Time Slots &<br/>Housekeeping Capacity Engine"]:::bronze
+    DESK["Arrivals Tool Write-Back<br/>Append-Only Desk<br/>Enrichments (W4)"]:::pine
   end
 
   subgraph GDL["2. GILPIN_GDL — Snowflake (GCP europe-west2 London)"]
-    RAW["RAW (22 Tables)<br/>Verbatim Append-Only Floor"]
-    BRZ["BRONZE (29 Tables)<br/>Typed Record Selection"]
-    SLV["SILVER (33T · 18V)<br/>Identity v3 · Quality · Hubs"]
-    GLD["GOLD (94T · 122V)<br/>37 Dims · 45 Facts · 12 Bridges<br/>+ Thin gld_* Faces"]
-    CTL[("Control Plane<br/>META · AUDIT (~630 Gates)<br/>GOVERNANCE · SECURITY · ENRICH")]
+    RAW["RAW (22 Tables)<br/>Verbatim Append-Only Floor"]:::pine
+    BRZ["BRONZE (29 Tables)<br/>Typed Record Selection"]:::pine
+    SLV["SILVER (33T · 18V)<br/>Identity v3 · Quality · Hubs"]:::pine
+    GLD["GOLD (94T · 122V)<br/>37 Dims · 45 Facts · 12 Bridges<br/>+ Thin gld_* Faces"]:::bronze
+    CTL[("Control Plane<br/>META · AUDIT (~630 Gates)<br/>GOVERNANCE · SECURITY · ENRICH")]:::obsidian
     RAW --> BRZ --> SLV --> GLD
   end
 
   subgraph USE["3. Operational Platforms & Consumers"]
-    AT["GilpinArrivalTool (v10.6.1)<br/>Reception · HK · Maint · Gate<br/>In House · DM Diary · Live AI"]
-    KD["gilpin-kitchen-dashboard (v7.1.0)<br/>Source · Spice · Breakfast<br/>Allergen Brief · Stock & Orders"]
-    AM["gilpin-amenities<br/>38-Bedroom & Plant<br/>Survey Register"]
-    MCP["Claude MCP & Plato<br/>Least-Privilege GOLD<br/>& Governed Exports"]
+    AT["GilpinArrivalTool (v10.6.1)<br/>Reception · HK · Maint · Gate<br/>In House · DM Diary · Live AI"]:::bronze
+    KD["gilpin-kitchen-dashboard (v7.1.0)<br/>Source · Spice · Breakfast<br/>Allergen Brief · Stock & Orders"]:::bronze
+    AM["gilpin-amenities<br/>38-Bedroom & Plant<br/>Survey Register"]:::pine
+    RH["Gilpin-reviews-hub (v1.1.0)<br/>Multi-Venue Review Archive<br/>& AI Reply Workbench"]:::pine
+    MCP["Claude MCP & Plato<br/>Least-Privilege GOLD<br/>& Governed Exports"]:::obsidian
   end
 
-  HART & ARCH & PL & MKT & GATE --> RAW
+  HART & ARCH & PL & MKT & GATE & SLOTS --> RAW
   DESK --> CTL
+  SLOTS -- "Atomic Claim + Mirror" --> AT
   GLD -- "SERVING_NOTIFY (8-Day Window)" --> AT
   AT -- "Shared Firebase RTDB (europe-west1)" --> KD
   AT -- "Expected Plate Cache" --> GATE
@@ -133,13 +140,18 @@ flowchart LR
   4. **Brief:** Daily kitchen brief composed automatically from the Arrivals Tool & Guest Data Lake (`briefings/{date}`, `occupancy/{date}`, `sessions/*`), surfacing **un-gated UK Top 14 allergen & dietary alerts** to every kitchen role, Main vs. Lake House cover splits, and confidential server-side inspector watchlist checks (`POST /api/check-inspectors`).
   5. **Stock:** Per-kitchen stock management (**Main Hotel**, **Gilpin Spice**, **Lake House**) covering **Recipes** (read-only from Plato, the system of record per `PLATO_RECIPES_CONTRACT.md`), **Items**, **Count** (timestamped shelf counts), **Orders** (deterministic calculation from lake covers × menu recipe uptake ÷ batch portions − shelf stock, rounded to supplier packs, with chef-approved Resend emails via `POST /api/send-email`), and **Suppliers**. Calls **zero AI providers**.
 
+### 🕰️ [gilpin-arrival-slots](https://github.com/gilpin-hotel/gilpin-arrival-slots) · `Pre-Arrival Time Slots & Capacity Engine`
+* **Staggered Guest Arrivals & Housekeeping Section Capacity:** Sends guests a D-2 Hart email (`Room Confirmation 18` for **Gilpin Hotel**; `Room Confirmation 17` for **Gilpin Lake House**) linking to `https://arrive.thegilpin.co.uk/arrive/$$ID$$#$$Surname$$` (where the surname stays in the browser fragment and never enters HTTP GET logs).
+* **Agreed Housekeeping Rules (`spread-2026-10` & `agreed-2026-10`):** Pure decision engine (`utils/arrivalSlots/engine.ts` + `policy.ts`) enforcing section caps across **S1 (`1–6`)**, **S2 (`7–14`)**, **S3 (`15–22`)**, and **S4 (`23–31` excl. `29`)**, a hotel-wide midday (`12:00`) cap (`hotelCaps: { '12:00': 1 }`), `90 min` room turnaround calculations (blocking early check-in behind `12:00` Celebration package check-outs or desk late check-outs), and a `22:00` (`10pm`) D-1 cut-off.
+* **Atomic RTDB Mirror & Data Lake Round-Trip (`eta_source = 'SLOT'`):** Commits claims atomically to `arrivalSlots/days/<date>/claims`, mirrors `eta` + `arrivalSlot` to the live Arrivals Board (`sessions/<date>`) and Room Board (`Ready by <HH:MM> · early check-in promised`), passes online vehicle registrations to the ANPR desk overlay (`T1B_PROFILE`), and lands captures in `RAW.raw_prearrival_capture` on the lake's post-build notification (`META.SP_NOTIFY_SERVING`). Includes the self-contained interactive browser showcase (`demo/`).
+
 ### 🌿 [gilpin-amenities](https://github.com/gilpin-hotel/gilpin-amenities) · `Live Estate Register`
 * **38-Bedroom & Back-of-House Inventory:** Shared, real-time register of every amenity, fixture, and plant item across all **38 estate bedrooms** (Main Hotel rooms 1–31 excl. 29; Lake House suites 51–58) and **Back-of-House** plant/boiler areas.
 * **Zero-Build Architecture & Plato Export:** Single-page static web application (`index.html`) deployed on Vercel (`lhr1`), backed by Firebase Auth, Cloud Firestore in **EU (`eur3`)** (`rooms` and `changelog` collections with ~1s auto-save and offline persistence), and Cloud Storage (`US-EAST1`, strictly hardware/fixture photos only — zero guest PII). Exports a self-contained `survey.json` + `survey.csv` + resized photo archive for **Plato** room-mapping handoff (`SCHEMA.md`).
 
 ### ⭐ [Gilpin-reviews-hub](https://github.com/gilpin-hotel/Gilpin-reviews-hub) · `v1.1.0`
 * **Multi-Venue Review Archive & Sentiment Classifier:** Internal review-intelligence application across 4 estate venues (`hotel`, `lakehouse`, `source`, `spice`) backed by an isolated Firebase RTDB partition (`reviewLake/reviews/*` in `europe-west1`) and Vercel Functions pinned to **London (`lhr1`)**.
-* **Classification & Analytics:** Ingests reviews from Google Places API (New) and historical TripAdvisor/Booking.com datasets, classifies department, type, sentiment polarity (1–5), topics, and actionability via **Gemini 2.5 Flash** (`responseSchema` JSON mode with a 3-tier retry ladder), drafts responses in the Gilpin voice (`/api/reply-draft`), and provides **Inbox**, **Reviews**, and **Insights** views plus 2-sheet `.xlsx` export. *(Note: Since 20 Oct 2026 in `GilpinArrivalTool` `v10.6.0`, live DM Diary morning-briefing reviews are sourced directly from Gilpin's Google Business Profile listings via `api/_reviewsSource.ts`, while this repository preserves the standalone review archive and analytics hub.)*
+* **Classification & Analytics:** Ingests Google, TripAdvisor, and Booking.com review datasets (via JSON/CSV/paste or seed import), classifies department, type, sentiment polarity (1–5), topics, and actionability via **Gemini 2.5 Flash** (`responseSchema` JSON mode with a 3-tier retry ladder), drafts responses in the Gilpin voice (`/api/reply-draft`), and provides **Inbox**, **Reviews**, and **Insights** views plus 2-sheet `.xlsx` export. *(Note: Since 20 Oct 2026 in `GilpinArrivalTool` `v10.6.0`, live DM Diary morning-briefing reviews are sourced directly from Gilpin's Google Business Profile listings via `api/_reviewsSource.ts`, while this repository preserves the standalone review archive and analytics hub.)*
 
 ---
 
