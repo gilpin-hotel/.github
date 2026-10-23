@@ -31,7 +31,7 @@ The Gilpin technology estate joins **20+ years of guest stay, dining, and spa hi
 <details>
 <summary><sub>📐 View Interactive Mermaid Architecture Source</sub></summary>
 
-```mermaid
+```text
 flowchart LR
   classDef pine fill:#18261F,stroke:#C5A065,stroke-width:1.5px,color:#F5F3EF
   classDef bronze fill:#2F4A3C,stroke:#C5A065,stroke-width:2px,color:#F5F3EF
