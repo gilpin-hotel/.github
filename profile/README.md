@@ -24,6 +24,13 @@
 
 The Gilpin technology estate joins **20+ years of guest stay, dining, and spa history** (from August 2004 to the present day) with physical estate sensing and real-time front-of-house, housekeeping, maintenance, and culinary workflows across **Gilpin Hotel** (30 bedrooms, rooms 1–31 excl. Room 29), **The Lake House** (8 suites, rooms 51–58), **SOURCE at Gilpin Hotel**, and **Gilpin Spice**.
 
+<div align="center">
+  <a href="#gh-light-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-estate-architecture-light.png" alt="Gilpin Hotel & Lake House Estate Architecture" width="100%" /></a><a href="#gh-dark-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/gilpin-estate-architecture-dark.png" alt="Gilpin Hotel & Lake House Estate Architecture" width="100%" /></a>
+</div>
+
+<details>
+<summary><sub>📐 View Interactive Mermaid Architecture Source</sub></summary>
+
 ```mermaid
 flowchart LR
   classDef pine fill:#18261F,stroke:#C5A065,stroke-width:1.5px,color:#F5F3EF
@@ -66,6 +73,8 @@ flowchart LR
   GLD --> MCP
   AM -. "survey.json / survey.csv" .-> PL
 ```
+
+</details>
 
 ```
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
