@@ -4,76 +4,107 @@
 
 <br/><br/>
 
-### *Enterprise Hospitality Operations & Conformed Data Architecture*
-**Windermere, The English Lake District · Relais & Châteaux**
-
-</div>
-
-<br/>
-
-> [!NOTE]
-> **Working Draft (Pre-Production UAT):** All platform descriptions, architecture specifications, and operational registers are currently a **Working Draft** in active pre-production review. Real-time integrations with **Plato Operations** (live operational feeds, guest handovers, maintenance, guest issues, dietary follows, and morning briefing sync) are actively running in UAT across the estate platform alongside Hart PMS and the Gilpin Data Lake (Snowflake London). Final documentation, full governance reviews, and descriptions will be completed with Claude on Sunday.
+# Gilpin Hotel & Lake House
+### *Enterprise Hospitality Operations & Conformed Guest Data Architecture*
+**Crook Road, Windermere · The English Lake District · Relais & Châteaux**
 
 <br/>
 
-<div align="center">
-
-[![Snowflake GDL](https://img.shields.io/badge/Snowflake-GCP_London_europe--west2-29B5E8?style=for-the-badge&logo=snowflake)](https://github.com/gilpin-hotel/GDL_Merged)
-[![Arrival Platform](https://img.shields.io/badge/Arrival_Platform-v10.6.0_UAT-2ea44f?style=for-the-badge&logo=react)](https://gilpin-arrival-tool.vercel.app)
-[![Kitchen Intelligence](https://img.shields.io/badge/Kitchen_Safety-v7.1.0_UAT-e05d44?style=for-the-badge&logo=vitest)](https://gilpin-kitchen.vercel.app)
-[![Vercel Edge](https://img.shields.io/badge/Vercel_Edge-London_lhr1-000000?style=for-the-badge&logo=vercel)](https://vercel.com/)
-[![UK GDPR](https://img.shields.io/badge/UK_GDPR-Article_28_Governed-c5a065?style=for-the-badge)](https://github.com/gilpin-hotel)
+[![Snowflake GDL](https://img.shields.io/badge/Snowflake_GDL-GCP_London_europe--west2-2F4A3C?style=for-the-badge&logo=snowflake&logoColor=white)](https://github.com/gilpin-hotel/GDL_Merged)
+[![Arrival Platform](https://img.shields.io/badge/Arrival_Platform-v10.6.1-2F4A3C?style=for-the-badge&logo=react&logoColor=white)](https://github.com/gilpin-hotel/GilpinArrivalTool)
+[![Kitchen Platform](https://img.shields.io/badge/Kitchen_Operations-v7.1.0-2F4A3C?style=for-the-badge&logo=vite&logoColor=white)](https://github.com/gilpin-hotel/gilpin-kitchen-dashboard)
+[![Edge Compute](https://img.shields.io/badge/Vercel_Functions-London_lhr1-0C110E?style=for-the-badge&logo=vercel&logoColor=white)](https://github.com/gilpin-hotel)
+[![Data Residency](https://img.shields.io/badge/Guest_Data_Residency-UK_%26_EU_Governed-C5A065?style=for-the-badge)](https://github.com/gilpin-hotel/GDL_Merged)
 
 ---
 
 </div>
 
-## 🏛️ System Architecture & Data Flow
+## 🏛️ Estate Technology & Data Architecture
 
-The Gilpin technology platform provides a conformed, single source of guest truth linking 20+ years of hotel, culinary, and spa history with real-time physical estate sensing and front-line operational tools across **Gilpin Hotel** and the **Lake House Sanctuary**.
+The Gilpin technology estate joins **20+ years of guest stay, dining, and spa history** (from August 2004 to the present day) with physical estate sensing and real-time front-of-house, housekeeping, maintenance, and culinary workflows across **Gilpin Hotel** (30 bedrooms, rooms 1–31 excl. Room 29), **The Lake House** (8 suites, rooms 51–58), **SOURCE at Gilpin Hotel**, and **Gilpin Spice**.
+
+```mermaid
+flowchart LR
+  subgraph SRC["1. Sources & Estate Sensors"]
+    HART["Hart PMS API<br/>Stays, Dining & Spa<br/>11:45 & 23:30 London"]
+    ARCH["Historical Archives<br/>ReslynxE (2004–2021)<br/>Hart Historic (2022–Jul 2026)"]
+    PL["Plato Operations<br/>8 Feeds to RAW<br/>(Issues, Handovers, Maint.)"]
+    MKT["Marketing & Web<br/>DotDigital Snapshot &<br/>WP Engine Form Poller"]
+    GATE["ANPR Gate Cameras<br/>Lake House & Main Hotel<br/>via Gate PC (GIL10620)"]
+    DESK["Arrivals Tool Write-Back<br/>Desk Enrichments &<br/>Pre-Arrival Slots"]
+  end
+
+  subgraph GDL["2. GILPIN_GDL — Snowflake (GCP europe-west2 London)"]
+    RAW["RAW (22 Tables)<br/>Verbatim Append-Only Floor"]
+    BRZ["BRONZE (29 Tables)<br/>Typed Record Selection"]
+    SLV["SILVER (33T · 18V)<br/>Identity v3 · Quality · Hubs"]
+    GLD["GOLD (94T · 122V)<br/>37 Dims · 45 Facts · 12 Bridges<br/>+ Thin gld_* Faces"]
+    CTL[("Control Plane<br/>META · AUDIT (~630 Gates)<br/>GOVERNANCE · SECURITY · ENRICH")]
+    RAW --> BRZ --> SLV --> GLD
+  end
+
+  subgraph USE["3. Operational Platforms & Consumers"]
+    AT["GilpinArrivalTool (v10.6.1)<br/>Reception · HK · Maint · Gate<br/>In House · DM Diary · Live AI"]
+    KD["gilpin-kitchen-dashboard (v7.1.0)<br/>Source · Spice · Breakfast<br/>Allergen Brief · Stock & Orders"]
+    AM["gilpin-amenities<br/>38-Bedroom & Plant<br/>Survey Register"]
+    MCP["Claude MCP & Plato<br/>Least-Privilege GOLD<br/>& Governed Exports"]
+  end
+
+  HART & ARCH & PL & MKT & GATE --> RAW
+  DESK --> CTL
+  GLD -- "SERVING_NOTIFY (8-Day Window)" --> AT
+  AT -- "Shared Firebase RTDB (europe-west1)" --> KD
+  AT -- "Expected Plate Cache" --> GATE
+  GLD --> MCP
+  AM -. "survey.json / survey.csv" .-> PL
+```
 
 ```
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
-                             1. SOURCE INGESTION & PHYSICAL SENSORS
+                             1. SOURCE INGESTION & ESTATE SENSING (11 ACTIVE FEEDS)
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
-  • Hart PMS API: Stays, Dining & Spa Deltas (Scheduled 11:45 & 23:30 London Pulls)
-  • Historical Archives: ResLynxE (2004–2021) & Hart Historic (2022–July 2026)
-  • Plato Operations: 8 Feeds to RAW (Guest Issues, Feedback, Handovers, Maintenance)
-  • Marketing & Consent: Dotdigital (Landed subscribers, lists, suppressions) & Web Form Archive
-  • Physical Estate Sensing: Lake House Gate Hikvision Camera via On-Premises Gate PC (GIL10620)
-  • Arrivals Tool Write-Back: Front Desk Room Edits & Guest Arrival Window Selections
+  • Hart PMS API: Stays (GDLEXport), Dining (GDLEXportPOS) & Spa (GDLEXportSPA) — 11:45 & 23:30 London
+  • Closed Historical Archives: ReslynxE (Aug 2004–Dec 2021) & Hart Historic Export (2022–Jul 2026)
+  • Plato Operations: 8 feeds (Guest Issues, Feedback, Handovers + Guest Facts, Maintenance, Planned
+    Maintenance, Lost Property, Accidents) landed twice daily via SVC_PLATO_INGEST
+  • Marketing & Web Forms: DotDigital (subscribers, lists, suppressions) & WP Engine live form poller
+  • Physical Gate Sensing: Lake House & Main Hotel Hikvision ANPR cameras via Gate PC (GIL10620)
+  • Desk Write-Back: Append-only desk enrichments (ENRICH.arrivals_tool_event) & arrival-slot captures
                                                 │
                                                 ▼
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
-                  2. GILPIN DATA LAKE (GDL) — SNOWFLAKE (GCP LONDON europe-west2)
+                  2. GILPIN GUEST DATA LAKE (GILPIN_GDL) — SNOWFLAKE (GCP LONDON europe-west2)
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
   ┌─────────────────────────────┬────────────────────────────────────────────────────────────────────┐
-  │  RAW LAYER (22 Tables)      │ Verbatim landing floor · Replay boundary · Never mutated           │
+  │  RAW LAYER (22 Tables)      │ Verbatim append-only landing floor · Replay boundary · Immutable   │
   ├─────────────────────────────┼────────────────────────────────────────────────────────────────────┤
-  │  BRONZE LAYER (29 Tables)   │ Typed, conformed selections per source record                      │
+  │  BRONZE LAYER (29 Tables)   │ Typed column selection per source record (no joins or decisions)   │
   ├─────────────────────────────┼────────────────────────────────────────────────────────────────────┤
-  │  SILVER LAYER (33T, 18V)    │ Canonical identity engine (v3) · Data quality · Shared hub tables  │
+  │  SILVER LAYER (33T, 18V)    │ Signed v3 identity engine · Note-facts parser · Shared hub tables  │
   ├─────────────────────────────┼────────────────────────────────────────────────────────────────────┤
-  │  GOLD LAYER (94T, 122V)     │ Conformed Dimensional Star (37 Dims, 45 Facts) + Thin gld_* Faces │
+  │  GOLD LAYER (94T, 122V)     │ Conformed Star (37 Dims, 45 Facts, 12 Bridges) + Thin gld_* Faces  │
   ├─────────────────────────────┼────────────────────────────────────────────────────────────────────┤
-  │  CONTROL PLANE              │ META (Standards & Budgets) · AUDIT (~630 Gates/Build) · GOVERNANCE │
+  │  CONTROL PLANE              │ META · AUDIT (~630 Gates/Build, LIN-0..7) · GOVERNANCE · SECURITY  │
   └─────────────────────────────┴────────────────────────────────────────────────────────────────────┘
-  • Rebuilt deterministically from RAW twice daily (113-task graph, 111 active tasks, ~42 min runtime)
-  • Lineage Gate (module 112) enforces rules LIN-0 through LIN-7 on every single build
-  • Least-privilege consumers read through thin GOLD faces; MCP server connects Claude to lake
+  • Rebuilt deterministically from RAW twice daily (113 Snowflake tasks, 111 active, ~42 min median)
+  • Star Contract (111 PKs, 218 FKs), Column Dictionary (1,003 columns), and Lineage Gate (module 112)
                                                 │
                                                 ▼
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
-                       3. OPERATIONAL SERVING & REAL-TIME DASHBOARDS
+                        3. OPERATIONAL PLATFORMS & SERVING SURFACES (UK / EU)
 ════════════════════════════════════════════════════════════════════════════════════════════════════════
-        │                                       │                                       │
-        ▼ (SERVING_NOTIFY Event)                 ▼ (Real-Time Sync)                      ▼ (Direct API)
+         │                                       │                                       │
+         ▼ (SERVING_NOTIFY + PDF Overlay)        ▼ (Shared Firebase RTDB)                ▼ (Firestore eur3 / RTDB)
   ┌───────────────────────────┐           ┌───────────────────────────┐           ┌───────────────────────────┐
-  │   Gilpin Arrivals Tool    │           │ Kitchen Safety Dashboard  │           │   Review Intelligence     │
-  │      v10.6.0 (UAT)        │           │       v7.1.0 (UAT)        │           │       v1.1.0 (UAT)        │
-  │   React 19 · Firebase RTDB│           │ React 19 · Vite 8 · TW 4  │           │ React 19 · Gemini 2.5     │
-  │   10 Department Dashboards│           │ Real-Time Allergen Board  │           │ Google Places API         │
-  │   AI Live Assistant (lhr) │           │ Karpathy Procurement Loop │           │ 3 Views (Inbox/Reviews)   │
+  │   GilpinArrivalTool       │           │ gilpin-kitchen-dashboard  │           │ Estate Registers & Hubs   │
+  │        v10.6.1            │           │          v7.1.0           │           │                           │
+  │ • 8-Day Lake Window + PDF │           │ • Source, Spice &         │           │ • gilpin-amenities:       │
+  │ • Reception, HK, Maint,   │           │   Breakfast Floor Plans   │           │   38-Room & BOH Register  │
+  │   Turndown, In House, Gate│           │ • Automated Table Check   │           │ • Gilpin-reviews-hub:     │
+  │ • Self-Updating DM Diary  │           │ • Un-Gated Allergen Brief │           │   v1.1.0 Multi-Channel    │
+  │ • Gemini 3.1 Flash Live   │           │ • Read-Only Plato Recipes │           │   Review Archive & AI     │
+  │   Voice/Text Relay (lhr)  │           │   & Deterministic Stock   │           │   Categoriser             │
   └───────────────────────────┘           └───────────────────────────┘           └───────────────────────────┘
 ```
 
@@ -81,38 +112,34 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 
 ## 📦 Technology Repositories
 
-### 🏨 [GilpinArrivalTool](https://github.com/gilpin-hotel/GilpinArrivalTool) · `v10.6.0 UAT`
-* **Real-Time Front-of-House Orchestration:** Master arrivals manifest and 10 role-specific operational dashboards (Arrivals, Housekeeping, Maintenance, Front of House, Handover Hub, Turndown, Checkouts, In House, Duty Manager Diary, and Analytics).
-* **Stack:** `React 19` `TypeScript 5.7` `Vite 6` `Tailwind CSS 3.4` `Framer Motion 12`.
-* **State & Edge:** Firebase Realtime Database in **Belgium (`europe-west1`)** provides sub-second multi-device sync across all 10 departments. Edge compute runs on Vercel Serverless in **London (`lhr1`)**.
-* **Authentication:** Firebase Auth RBAC (role-based access across departments and HODs; legacy HMAC token auth completely removed).
-* **AI Live Assistant:** Voice & text conversational assistant powered by Gemini Flash Live via a dedicated server-side WebSocket relay in **London (`lhr`)**.
-* **PMS & Estate Integrations:** Column-aware PDF briefing parser (38-room estate map), Hart PMS check-in tokens, ETA timeline write-back, Room Confirmation templates, and Lake House ANPR gate plate matching.
+### 🏛️ [GDL_Merged](https://github.com/gilpin-hotel/GDL_Merged) · `Snowflake GCP London (europe-west2)`
+* **Conformed Guest Data Lake (`GILPIN_GDL`):** Joins every stay since August 2004, every restaurant and spa booking since March 2025, marketing consent, Plato operational feeds, and ANPR gate arrivals into one deterministic guest identity per real person (`01_sql/24_identity_v3_signed_rules.sql` & household grouping module 87).
+* **Four-Layer Medallion + Star Schema:** `RAW` (22 verbatim tables) → `BRONZE` (29 typed tables) → `SILVER` (33 tables, 18 views including shared hubs `guest_visit`, `guest_prep`, `guest_core`) → `GOLD` (94 tables — **37 SCD2 dimensions**, **45 facts**, **12 bridges** with 111 primary keys and 218 foreign keys — plus **122 thin `gld_*` views**).
+* **Snowflake-Native Orchestration:** **113 native Snowflake tasks** (111 active per run) executing twice daily at **11:45 and 23:30 Europe/London** (~42 min median runtime), backed by failure and deadman email alerts (`GDL_TASK_ALERTS` at 01:30 and 13:30).
+* **Automated Verification & Governance:** ~630 automated quality gates per build (`AUDIT.gate_result`), live lineage enforcement (`112_lineage_gate.sql` rules `LIN-0` through `LIN-7`), view performance budgets (`43_perf_gate.sql`), star-contract enforcement (`99_star_contract.sql`), local DuckDB test harness (`qa/run_local.py`), stage-drift verifier (`setup/check_stage_drift.py`), and a read-only Claude MCP server (`mcp/mcp_server.py`).
 
-### 🏛️ [GDL_Merged](https://github.com/gilpin-hotel/GDL_Merged) · `Governed Lake Platform (UAT)`
-* **Enterprise Guest Data Lake:** Unifies 20+ years of Hart PMS, Plato operations, and Dotdigital marketing into a single conformed guest truth.
-* **Engine:** Snowflake on **GCP `europe-west2` (London)**.
-* **Build Cadence:** 113 native Snowflake tasks (111 active) running twice daily at **11:45 and 23:30 London** (~42 min median runtime). Deterministically rebuilds layers from `RAW`.
-* **Lineage & Quality Gates:** Module `112_lineage_gate.sql` enforces rules `LIN-0` through `LIN-7` every build. Automated gate runner asserts ~630 quality checks per build into `AUDIT.gate_result`.
-* **Test Harness:** Local DuckDB suite (`qa/run_local.py`) running 50/50 regression tests in seconds over synthetic fixtures.
-* **Clean Snapshot:** Zero historical PII, zero credentials, and single-commit compliance on GitHub.
+### 🏨 [GilpinArrivalTool](https://github.com/gilpin-hotel/GilpinArrivalTool) · `v10.6.1`
+* **Lake-Fed + PDF Hybrid Arrival & Estate Platform:** Automatically pulls a rolling 8-day window (`T-1..T+6`) of arrivals, stayovers (`occupancy/{YYYY-MM-DD}`), 7-day briefings (`briefings/{YYYY-MM-DD}`), guest recognition tiers, prior visit counts, card-token status, and Plato maintenance/handover feeds from `GILPIN_GDL` upon `SERVING_NOTIFY`, while preserving X-coordinate PDF extraction (Hart 2026+ underscored room tokens) as a same-day overlay and standalone fallback.
+* **Departmental Operational Boards:** Dedicated, role-gated views across **Arrivals**, **Check-In (Front of House)**, **In House** (38-room estate grid: 30 Main Hotel + 8 Lake House), **Housekeeping** (5-stage cleaning ladder + *Plant a Tree* 🌳 and *Cat Outside* 🐈 door signs), **Maintenance** (*Rooms Today*, *Issues*, *Plato Backlog*, *Overview*, and `?tv=1` workshop wallboard), **Turndown**, **Checkouts**, **Gate (ANPR)**, **4-Day Pre-Arrival Call Sheet**, **Handover Hub & Self-Updating DM Diary**, **Taxi Log**, and **HoD Greeter**.
+* **ANPR Gate & Lock-Screen Alerts:** Receives live plate reads from on-site Hikvision cameras (`GIL10620`) at the Lake House and Main Hotel gates, matches Tier 1 (arriving/in-house) and Tier 2 (returning guest) vehicles, dispatches department-scoped Web Push phone alerts, looks up DVLA vehicle details, provides HoD/Admin full-lake plate history search (`api/gate-plate-history.ts`), and drains reads hourly to Snowflake via Snowpipe.
+* **AI & Guest Experience Suite:** Two-lane Gemini refinement (`api/_refineHartLane.ts` & `api/gemini-refine.ts`), **Gemini 3.1 Flash Live** voice/text assistant via a dedicated Fly.io WebSocket relay (`lhr` London), WYSIWYG Package Itinerary Generator (*Magical Escape*, *Gilpinmoon*, *Magical Wellness Hideaway*), tri-fold Guest Bulletin, QR Digital Guest Guide (32 Lake District walks), and in-app **Operations Manual (Edition 38)**.
 
-### 🍳 [gilpin-kitchen-dashboard](https://github.com/gilpin-hotel/gilpin-kitchen-dashboard) · `v7.1.0 UAT`
-* **Culinary Safety & Real-Time Kitchen Intelligence:** Real-time food safety and operations platform serving both *Source at Gilpin Hotel* and *Gilpin Spice*.
-* **Stack:** `React 19.2` `TypeScript 5.9` `Vite 8` `Tailwind CSS 4.2` deployed on Vercel **London (`lhr1`)**.
-* **Food Safety Protocol:** Immediate, un-gated visibility of UK Top 14 allergens, dietary requirements, and last-minute booking modifications (<60 min); cover counts split by Main Hotel and Lake House.
-* **Karpathy Auto-Research Loop:** Autonomous procurement agent utilizing an Exponential Moving Average (EMA) feedback loop that learns from daily post-service consumption (ordered vs. used) to accurately scale future ingredient orders.
+### 🍳 [gilpin-kitchen-dashboard](https://github.com/gilpin-hotel/gilpin-kitchen-dashboard) · `v7.1.0`
+* **Culinary Operations & Food Safety Platform:** Live service, floor-plan, and stock management platform serving **SOURCE at Gilpin Hotel**, **Gilpin Spice**, **Lake House**, and **Morning Breakfast**.
+* **Five Operational Views (`src/config/views.ts`):**
+  1. **Source:** Interactive floor plan across Source's three rooms, 2-hour turn timeline, lunch & dinner service lists, pass view, and automated **Table Check** (detects Hart double-booked tables across sittings and offers free tables).
+  2. **Spice:** Dedicated floor plan, turn timeline, lunch & dinner service management, and Table Check for *Gilpin Spice*.
+  3. **Breakfast:** Morning seating and floor plan built from the lake's prior-night in-house list (Main Hotel 30 rooms vs. Lake House 8 suites), group table laying, room-service send-ups, and Room Only (`RO`) flags.
+  4. **Brief:** Daily kitchen brief composed automatically from the Arrivals Tool & Guest Data Lake (`briefings/{date}`, `occupancy/{date}`, `sessions/*`), surfacing **un-gated UK Top 14 allergen & dietary alerts** to every kitchen role, Main vs. Lake House cover splits, and confidential server-side inspector watchlist checks (`POST /api/check-inspectors`).
+  5. **Stock:** Per-kitchen stock management (**Main Hotel**, **Gilpin Spice**, **Lake House**) covering **Recipes** (read-only from Plato, the system of record per `PLATO_RECIPES_CONTRACT.md`), **Items**, **Count** (timestamped shelf counts), **Orders** (deterministic calculation from lake covers × menu recipe uptake ÷ batch portions − shelf stock, rounded to supplier packs, with chef-approved Resend emails via `POST /api/send-email`), and **Suppliers**. Calls **zero AI providers**.
 
-### ⭐ [Gilpin-reviews-hub](https://github.com/gilpin-hotel/Gilpin-reviews-hub) · `v1.1.0 UAT`
-* **Multi-Channel Reputation Platform:** Internal review-intelligence tool for Gilpin Hotel & Lake House.
-* **Stack:** `React 19` `TypeScript 5.7` `Vite 6` `Tailwind CSS 3.4` `Framer Motion 12` on Vercel Functions **London (`lhr1`)**.
-* **Data Flow & AI:** Dedicated partition on Firebase RTDB (`reviewLake/reviews/*`). Pulls reviews on demand from Google Places API (New), TripAdvisor, and Booking.com; Gemini 2.5 Flash classifies department, sentiment polarity, and actionable operational insights.
-* **Views & Reporting:** 3 operational views (Inbox reply queue, Reviews list with filter chips, Insights trend analytics) and 2-sheet XLSX export via `exceljs`.
+### 🌿 [gilpin-amenities](https://github.com/gilpin-hotel/gilpin-amenities) · `Live Estate Register`
+* **38-Bedroom & Back-of-House Inventory:** Shared, real-time register of every amenity, fixture, and plant item across all **38 estate bedrooms** (Main Hotel rooms 1–31 excl. 29; Lake House suites 51–58) and **Back-of-House** plant/boiler areas.
+* **Zero-Build Architecture & Plato Export:** Single-page static web application (`index.html`) deployed on Vercel (`lhr1`), backed by Firebase Auth, Cloud Firestore in **EU (`eur3`)** (`rooms` and `changelog` collections with ~1s auto-save and offline persistence), and Cloud Storage (`US-EAST1`, strictly hardware/fixture photos only — zero guest PII). Exports a self-contained `survey.json` + `survey.csv` + resized photo archive for **Plato** room-mapping handoff (`SCHEMA.md`).
 
-### 🌿 [gilpin-amenities](https://github.com/gilpin-hotel/gilpin-amenities) · `UAT`
-* **Suite & Bedroom Register:** Live inventory register across all 38 estate bedrooms (Main Hotel 1–31 excl. 29, Lake House 51–58) and Back-of-House areas (plant rooms, boiler rooms).
-* **Stack:** Zero-build static single-page architecture (`index.html`) deployed to Vercel **London (`lhr1`)**.
-* **Storage & Plato Bridge:** Room records and changelog stored in Cloud Firestore in **EU (`eur3`)**; room and plant hardware photos stored in Cloud Storage (`US-EAST1`, hardware photos only, strictly zero guest data). Provides automated zip export (`survey.json` + `survey.csv` + photos) for Plato room-mapping integration.
+### ⭐ [Gilpin-reviews-hub](https://github.com/gilpin-hotel/Gilpin-reviews-hub) · `v1.1.0`
+* **Multi-Venue Review Archive & Sentiment Classifier:** Internal review-intelligence application across 4 estate venues (`hotel`, `lakehouse`, `source`, `spice`) backed by an isolated Firebase RTDB partition (`reviewLake/reviews/*` in `europe-west1`) and Vercel Functions pinned to **London (`lhr1`)**.
+* **Classification & Analytics:** Ingests reviews from Google Places API (New) and historical TripAdvisor/Booking.com datasets, classifies department, type, sentiment polarity (1–5), topics, and actionability via **Gemini 2.5 Flash** (`responseSchema` JSON mode with a 3-tier retry ladder), drafts responses in the Gilpin voice (`/api/reply-draft`), and provides **Inbox**, **Reviews**, and **Insights** views plus 2-sheet `.xlsx` export. *(Note: Since 20 Oct 2026 in `GilpinArrivalTool` `v10.6.0`, live DM Diary morning-briefing reviews are sourced directly from Gilpin's Google Business Profile listings via `api/_reviewsSource.ts`, while this repository preserves the standalone review archive and analytics hub.)*
 
 ---
 
@@ -120,29 +147,29 @@ The Gilpin technology platform provides a conformed, single source of guest trut
 
 <div align="center">
 
-| The Lake House Sanctuary | Source at Gilpin Hotel | Gilpin Spice |
+| The Lake House Sanctuary | SOURCE at Gilpin Hotel | Gilpin Spice |
 | :---: | :---: | :---: |
 | <a href="https://thegilpin.co.uk/lake-house/"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/lake-house-exterior.jpg" width="260" alt="The Lake House Sanctuary" /></a> | <a href="https://thegilpin.co.uk/eat-drink/source/#gh-light-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo-pine.svg" width="190" alt="SOURCE at Gilpin Hotel" /></a><a href="https://thegilpin.co.uk/eat-drink/source/#gh-dark-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/source-logo.svg" width="190" alt="SOURCE at Gilpin Hotel" /></a> | <a href="https://thegilpin.co.uk/eat-drink/spice/#gh-light-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo-pine.svg" width="125" alt="Gilpin Spice" /></a><a href="https://thegilpin.co.uk/eat-drink/spice/#gh-dark-mode-only"><img src="https://raw.githubusercontent.com/gilpin-hotel/.github/main/profile/assets/spice-logo.svg" width="125" alt="Gilpin Spice" /></a> |
-| **Private Lake & Spa Lodges**<br/><sub>6–8 Exclusive Suites set in 100 Acres on Knipe Tarn<br/>Private Boathouse, Pool &amp; The Jetty Spa</sub> | **Michelin-Starred Fine Dining**<br/><sub>Head Chef Kevin Scanlan<br/>Hyper-Local Cumbrian Produce &amp; Modern Technique</sub> | **Pan-Asian Culinary Journey**<br/><sub>Head Chef Ralph Rojas<br/>Vibrant Open Kitchen &amp; Spice Trail Sharing Menus</sub> |
+| **Private Lake & Spa Sanctuary**<br/><sub>8 Exclusive Suites (Rooms 51–58) on Knipe Tarn<br/>Private Boathouse, Indoor Pool &amp; The Jetty Spa</sub> | **Michelin-Starred Fine Dining**<br/><sub>Head Chef Kevin Scanlan<br/>Hyper-Local Cumbrian Produce &amp; Modern Technique</sub> | **Pan-Asian Culinary Journey**<br/><sub>Head Chef Ralph Rojas<br/>Vibrant Open Kitchen &amp; Spice Trail Sharing Menus</sub> |
 
 </div>
 
 ---
 
-## 🔒 Verified Governance, Security & Residency Standards
+## 🔒 Verified Governance, Security & Residency Posture
 
-| Dimension | Architectural Fact & Verification (per Hosting Register 12 Oct 2026) |
+Every statement below reflects the verified live state recorded in `01_SOLUTION_ARCHITECTURE.md` (20 Oct 2026) and `HOSTING_REGISTER_2026-10-12.md` (12–19 Oct 2026):
+
+| Dimension | Verified Architectural Posture |
 | :--- | :--- |
-| **Guest Data Lake** | **Snowflake in GCP London (`europe-west2`).** All 6 stages internal, no replication, no external storage integrations. Full guest records held strictly within London. |
-| **Operational State Sync** | **Firebase RTDB in Belgium (`europe-west1`).** Both live and preview instances pinned to Belgium; Upstash Redis rate-limiter primary in `europe-west1`. |
-| **Serverless Compute** | **Vercel Serverless in London (`lhr1`).** Arrivals API, Kitchen API, and Reviews API pinned to London edge instances. |
-| **In-Transit Assistant Relay** | **Fly.io in London (`lhr`).** Live voice/text WebSocket relay holds guest context in memory only. |
-| **Hardware & Plant Storage** | **Cloud Storage (`US-EAST1`).** Amenities dashboard photos (radiators, boiler plates, room furnishings) held in `US-EAST1`; strictly zero guest PII. Firestore room data in EU (`eur3`). |
-| **AI Inference** | **Google Gemini & Claude Enterprise.** Gemini batch calls pseudonymised (Guest A/B, registrations stripped); Claude MCP queries executed via local subprocess reading London Snowflake. |
-| **Lineage Integrity** | Enforced by automated gate `AUDIT.gate_result` and module 112 every single build (`LIN-0` through `LIN-7`). |
-| **Change Verification** | Every production schema migration is proven on a zero-copy clone of production before promotion (`Lake Standard C7`). |
-| **Drift Verification** | `setup/check_stage_drift.py` asserts byte-level equivalence between Git commits, staged Snowflake code (`META.GDL_CODE`), task DAGs, and MCP hashes. |
-| **UK GDPR Compliance** | Article 28 governed; Article 17 multi-layer subject erasure implemented via `META.SP_RAW_ERASE_SUBJECT` (module 103). Zero live guest PII in repositories. |
+| **Guest Data Lake (`GILPIN_GDL`)** | **Snowflake on GCP London (`europe-west2`).** All stages are internal (`RAW.STG_ANPR_READ`, `RAW.STG_ANPR_READ_V1`, `META.GDL_CODE`, `META.GDL_MCP`, `BRONZE.STG_HART`); no external storage integrations and no cross-region replication. |
+| **Operational Realtime State** | **Firebase Realtime Database in Belgium (`europe-west1`).** Both live and preview instances are pinned to `europe-west1`; Upstash Redis rate-limiter primary is pinned to `europe-west1` (Belgium) with zero read replicas. |
+| **Serverless Edge Compute** | **Vercel Serverless Functions in London (`lhr1`).** Arrivals (`GilpinArrivalTool`), Kitchen (`gilpin-kitchen-dashboard`), Reviews (`Gilpin-reviews-hub`), and Amenities (`gilpin-amenities`) are all pinned to `lhr1`. |
+| **Live Voice/Text Relay** | **Fly.io in London (`lhr`).** `ws-relay` (`fly.toml` `primary_region = 'lhr'`) proxies Gemini 3.1 Flash Live audio/text streams with guest context held in memory only. |
+| **Amenities Register Storage** | **Cloud Firestore in EU (`eur3`) & Cloud Storage (`US-EAST1`).** Room and plant records reside in `eur3`; `US-EAST1` bucket holds strictly hardware/fixture photographs with zero guest PII. |
+| **Data Quality & Lineage Gates** | **~630 automated gates per build** logged to `AUDIT.gate_result`. Module `112_lineage_gate.sql` verifies Snowflake object lineage against rules `LIN-0` through `LIN-7` on every build. |
+| **Clone Proof & Drift Controls** | Schema changes are proven on a zero-copy clone of production before release (`Lake Standard C7`). `setup/check_stage_drift.py` verifies byte-level parity across Git, `META.GDL_CODE`, the 113-task graph, and the MCP bundle. |
+| **Consent, Masking & Erasure** | Strict opt-in marketing posture (`SILVER.guest_consent`, enforced by gate `VAL-7`); subject erasure across `RAW` and downstream layers via `META.SP_RAW_ERASE_SUBJECT` (module 103); 4 interim masking policies defined in `SECURITY` (currently detached during UAT per `META.governance_switch`). |
 
 ---
 
